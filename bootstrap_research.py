@@ -67,7 +67,7 @@ def main():
         assert p.exists() and sha(p) == row['sha256'], str(p)
         checked.append(dict(file=str(p.relative_to(R)), sha256=row['sha256']))
     if not args.verify_only:
-        for script in ['prepare_desalign_cpu.py', 'prepare_desalign_gpu.py', 'prepare_cdmea_cpu.py', 'entity_externality_v5.py']:
+        for script in ['prepare_desalign_cpu.py', 'prepare_desalign_gpu.py', 'prepare_cdmea_cpu.py', 'entity_externality.py']:
             subprocess.run([sys.executable, script], cwd=R, check=True)
     (R / 'bootstrap_verification.json').write_text(json.dumps(dict(checked=checked, verify_only=args.verify_only), indent=2))
     print('VERIFIED', len(checked), 'inputs')

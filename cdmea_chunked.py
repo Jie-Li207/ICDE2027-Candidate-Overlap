@@ -127,5 +127,5 @@ if __name__ == '__main__':
     import json
     from pathlib import Path
     checks = check()
-    (Path(__file__).parent / 'cdmea_v23_gpu/chunked_gradient_checks.json').write_text(json.dumps(checks, indent=2))
+    (Path(__file__).parent / 'cdmea_gpu/chunked_gradient_checks.json').write_text(json.dumps(checks, indent=2))
     print(json.dumps(checks, indent=2))

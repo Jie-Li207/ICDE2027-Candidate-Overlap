@@ -1,4 +1,4 @@
-from desalign_baseline_v9 import DESAlign
+from desalign_baseline import DESAlign
 
 class NoImageDESAlign(DESAlign):
 

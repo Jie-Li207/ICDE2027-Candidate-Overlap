@@ -2,7 +2,7 @@ import argparse, json, hashlib, collections
 from pathlib import Path
 import numpy as np
 R = Path(__file__).resolve().parent
-O = R / 'confirmatory_v27'
+O = R / 'confirmatory'
 
 def main():
     a = argparse.ArgumentParser()

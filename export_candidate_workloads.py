@@ -1,9 +1,9 @@
 import json
 from pathlib import Path
 import numpy as np
-from confirmatory_data_v27 import workload
+from confirmatory_data import workload
 R = Path(__file__).resolve().parent
-for f in sorted((R / 'candidate_v29').glob('*_manifest.json')):
+for f in sorted((R / 'candidate_continuation').glob('*_manifest.json')):
     m = json.loads(f.read_text())
     left = np.array(m['sources'])
     right = np.array(m['nested_target_order'])

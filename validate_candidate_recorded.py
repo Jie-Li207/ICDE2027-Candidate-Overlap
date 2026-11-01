@@ -7,7 +7,7 @@ def main():
     checked = collections.Counter()
     cache = {}
     signatures = set()
-    for folder, pattern in [('candidate_v29', '*_results.json'), ('candidate_v31', '*.json')]:
+    for folder, pattern in [('candidate_continuation', '*_results.json'), ('candidate_controls', '*.json')]:
         for f in sorted((R / folder).glob(pattern)):
             if f.name == 'all_results.json':
                 continue
@@ -21,7 +21,7 @@ def main():
                 assert signature not in signatures
                 signatures.add(signature)
                 if (ds, n, q) not in cache:
-                    z = np.load(R / 'candidate_v29' / (ds.replace('/', '_') + '_workload.npz'))
+                    z = np.load(R / 'candidate_continuation' / (ds.replace('/', '_') + '_workload.npz'))
                     order = np.random.default_rng(29002 + n).permutation(n)
                     g = np.argsort(order)[:256]
                     U = z[q + '_U']
@@ -29,7 +29,7 @@ def main():
                     truth = [set(map(int, g[u][v[g[u]]])) for u, v in zip(U, V)]
                     cache[ds, n, q] = (U, V, g, truth)
                 U, V, g, truth = cache[ds, n, q]
-                key = f"{r['score']}_{n}_{r['decoder']}" if folder == 'candidate_v29' else f"{r['learner']}_{r['mode']}_{n}_{r['decoder']}"
+                key = f"{r['score']}_{n}_{r['decoder']}" if folder == 'candidate_continuation' else f"{r['learner']}_{r['mode']}_{n}_{r['decoder']}"
                 p = pred[key]
                 tp = fp = fn = 0
                 for u, v, t in zip(U, V, truth):
@@ -42,7 +42,7 @@ def main():
                 assert abs(f1 - r['micro_f1']) < 1e-12
                 assert r['key_collisions'] == len(p) - len(set(map(int, p))) and abs(r['entity_accuracy'] - float((p == g).mean())) < 1e-12
                 checked[folder] += 1
-    assert dict(checked) == {'candidate_v29': 5040, 'candidate_v31': 2100}, checked
+    assert dict(checked) == {'candidate_continuation': 5040, 'candidate_controls': 2100}, checked
     out = dict(passed=True, independent_rows=dict(checked), checks=['TP/FP/FN', 'microF1', 'identity_accuracy', 'key_collisions', 'unique_conditions'], scope='Recomputation of recorded outcomes; not a new held-out experiment')
     (R / 'candidate_recorded_validation.json').write_text(json.dumps(out, indent=2))
     print(json.dumps(out, indent=2))

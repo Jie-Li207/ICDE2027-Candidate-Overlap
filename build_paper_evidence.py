@@ -4,7 +4,7 @@ import numpy as np
 import matplotlib
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
-from summarize_confirmatory_v27 import bootstrap
+from summarize_confirmatory import bootstrap
 R = Path(__file__).resolve().parent
 P = R / 'paper'
 F = P / 'figures'
@@ -16,11 +16,11 @@ SHORT = dict(zip(DS, ['FB--DB', 'FB--YG', 'ZH--EN', 'FR--EN']))
 colors = ['#0072B2', '#D55E00', '#009E73', '#CC79A7']
 plt.rcParams.update({'font.family': 'DejaVu Sans', 'font.size': 9, 'axes.labelsize': 9, 'axes.titlesize': 10, 'legend.fontsize': 8, 'xtick.labelsize': 8, 'ytick.labelsize': 8, 'pdf.fonttype': 42, 'ps.fonttype': 42, 'axes.spines.top': False, 'axes.spines.right': False})
 rows = []
-for f in (R / 'confirmatory_v27/results').glob('*.json'):
+for f in (R / 'confirmatory/results').glob('*.json'):
     rows.extend(json.loads(f.read_text())['rows'])
-cand = json.loads((R / 'candidate_v29/all_results.json').read_text())
-summary = json.loads((R / 'confirmatory_v27/summary.json').read_text())
-paired = json.loads((R / 'confirmatory_v27/paired.json').read_text())
+cand = json.loads((R / 'candidate_continuation/all_results.json').read_text())
+summary = json.loads((R / 'confirmatory/summary.json').read_text())
+paired = json.loads((R / 'confirmatory/paired.json').read_text())
 
 def sel(rr=rows, **kw):
     return [r for r in rr if all((r.get(k) == v for k, v in kw.items()))]
@@ -135,7 +135,7 @@ fig.tight_layout(w_pad=0.2)
 save(fig, 'mechanism')
 body = []
 for ds in DS:
-    m = json.loads((R / 'confirmatory_v27' / (ds.replace('/', '_') + '_identities.json')).read_text())
+    m = json.loads((R / 'confirmatory' / (ds.replace('/', '_') + '_identities.json')).read_text())
     body.append([SHORT[ds], f"{m['eligible_count']:,}", f"{len(m['test']):,}", f"{len(m['gallery']):,}", 3 if ds in [DS[0], DS[2]] else 2])
 table('data', 'Corpus & Eligible & Sealed pool & Gallery & Seeds', body, 'lrrrr')
 body = []
@@ -167,14 +167,14 @@ for ds in DS:
     body.append([SHORT[ds], fmt(1 - mean(rr, 'target_coverage')), f"{max((r['marginal_residual'] for r in rr)):.1e}", sum((r['near_tie_rows'] for r in rr)), len(rr) * 512])
 table('soft', 'Corpus & Collision rate (\\%) & Residual & Near ties & Rows', body, 'lrrrr')
 direct = []
-for f in (R / 'confirmatory_v27/direct').glob('*.json'):
+for f in (R / 'confirmatory/direct').glob('*.json'):
     direct.extend(json.loads(f.read_text()))
 body = []
 for learner, decision, label in [('target_visual_ridge', 'threshold', 'Visual ridge, threshold'), ('target_visual_ridge', 'source_cardinality_topk', 'Visual ridge, top-$k$'), ('target_graph_propagation', 'threshold', 'Graph propagation, threshold'), ('target_graph_propagation', 'source_cardinality_topk', 'Graph propagation, top-$k$')]:
     body.append([label] + [fmt(mean(sel(direct, dataset=ds, learner=learner, decision=decision, regime='closed', query_set='coarse'), 'micro_f1')) for ds in DS])
 table('direct', 'Query predictor & FB--DB & FB--YG & ZH--EN & FR--EN', body, 'lrrrr')
 secondary = []
-for f in (R / 'candidate_v31').glob('*.json'):
+for f in (R / 'candidate_controls').glob('*.json'):
     secondary.extend(json.loads(f.read_text()))
 if secondary:
     body = []
@@ -188,8 +188,8 @@ if secondary:
             vals.append(f'{g[0]:.2f}/{g[1]:.2f}')
         body.append([label] + vals)
     table('candidate_simple', 'Scorer & FB--DB & FB--YG & ZH--EN & FR--EN', body, 'lrrrr')
-if (R / 'chance_v32/primary_setting_summary.json').exists():
-    chance = json.loads((R / 'chance_v32/primary_setting_summary.json').read_text())
+if (R / 'chance/primary_setting_summary.json').exists():
+    chance = json.loads((R / 'chance/primary_setting_summary.json').read_text())
     body = []
     for ds in DS:
         vals = []
@@ -202,7 +202,7 @@ for ds in DS:
     rr = sel(direct, dataset=ds, regime='closed', query_set='coarse')
     print('DIRECT FEASIBILITY', ds, sum((r['joint_query_feasible'] is True for r in rr)), len(rr))
 systems = []
-for f in (R / 'systems_v28').glob('*.json') if (R / 'systems_v28').exists() else []:
+for f in (R / 'systems').glob('*.json') if (R / 'systems').exists() else []:
     x = json.loads(f.read_text())
     if x.get('complete'):
         systems.append(x)
@@ -238,8 +238,8 @@ if systems:
         if r['regime'] == 'expanded' or r['n'] == max((z['n'] for z in systems if z['dataset'] == r['dataset'] and z['regime'] == 'closed')):
             body.append([SHORT[r['dataset']], f"{r['n']}x{r['m']}", f"{r['score']['median_s']:.3f}", f"{r['decoders']['dense']['median_s']:.3f}", f"{r['decoders']['stable']['median_s']:.3f}", f"{r['decoders']['sparse']['median_s']:.3f}", f"{r['sql_queries']['median_s'] * 1000:.2f}"])
     table('systems', 'Corpus & Shape & Score (s) & Dense (s) & Stable (s) & Sparse (s) & SQL (ms)', body, 'llrrrrr')
-if (R / 'paired_image_v33/summary.json').exists():
-    boundary = json.loads((R / 'paired_image_v33/summary.json').read_text())
+if (R / 'paired_image/summary.json').exists():
+    boundary = json.loads((R / 'paired_image/summary.json').read_text())
     body = []
     for ds in DS:
         rr = sel(boundary, dataset=ds, learner='DESAlign_depth2')
@@ -252,6 +252,6 @@ if (R / 'paired_image_v33/summary.json').exists():
             vals.append('/'.join((f"{r['values'][str(k)]['assignment_advantage'] * 100:.2f}" for k in [n, 4 * n])))
         body.append([SHORT[ds], n] + vals)
     table('shared_images', 'Corpus & Sources & Initial & Restored & No image', body, 'lrrrr')
-evidence = dict(score_conditions=sum((1 for _ in (R / 'confirmatory_v27/results').glob('*.json'))), metric_rows=len(rows), learner_conditions=dict(collections.Counter((r['learner'] for r in rows))), candidate_rows=len(cand), candidate_gate=json.loads((R / 'candidate_v29/primary_gate.json').read_text()), fidelity_cases=12, fidelity_changed_rows=sum((json.loads(f.read_text())['changed_row_decisions'] for f in (R / 'tfp_fidelity_v30').glob('*.json'))), systems_complete=len(systems))
+evidence = dict(score_conditions=sum((1 for _ in (R / 'confirmatory/results').glob('*.json'))), metric_rows=len(rows), learner_conditions=dict(collections.Counter((r['learner'] for r in rows))), candidate_rows=len(cand), candidate_gate=json.loads((R / 'candidate_continuation/primary_gate.json').read_text()), fidelity_cases=12, fidelity_changed_rows=sum((json.loads(f.read_text())['changed_row_decisions'] for f in (R / 'tfp_fidelity').glob('*.json'))), systems_complete=len(systems))
 (P / 'evidence_snapshot.json').write_text(json.dumps(evidence, indent=2))
 print(json.dumps(evidence, indent=2))
